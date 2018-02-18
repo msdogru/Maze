@@ -5,6 +5,9 @@
 #include <conio.h>
 #include <windows.h>
 
+
+
+
 #define mazefileloc "maze.txt"
 #define MAXROW 50
 #define MAXColl 50

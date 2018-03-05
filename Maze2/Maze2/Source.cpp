@@ -23,14 +23,6 @@ struct Smaze{
     int StartRow;
     int StartColl;
 };
-struct Sstack{
-    int row;
-    int coll;
-};
-struct Stack {
-    Sstack member[(MAXROW*MAXColl)/3];
-    int number;
-};
 
 using std::string ;
 

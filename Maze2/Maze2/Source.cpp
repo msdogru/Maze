@@ -5,9 +5,6 @@
 #include <conio.h>
 #include <windows.h>
 
-
-
-
 #define mazefileloc "maze.txt"
 #define MAXROW 50
 #define MAXColl 50
@@ -47,7 +44,7 @@ int KapalýYolmu(int row,int coll,int yön);
 
 void kapalýyolTýka(int row,int coll);
 
-void mazeisaretle(int row,int coll);
+void mazeisaretle(Smaze m,int row,int coll);
 
 Smaze maze;
 
@@ -64,7 +61,7 @@ int main()
 	maze.finRow = 0;
 	maze.FinColl = 0;
 
-	  FILE *MazeFile;
+	FILE *MazeFile;
     MazeFile = fopen(mazefileloc,"r");
     int RowIndex = -1;
     int CollIndex = 0;
@@ -97,7 +94,7 @@ int main()
 
 	mazeBull(maze.StartRow,maze.StartColl,0,0);
 
-	mazeisaretle(maze.finRow,maze.FinColl);
+	mazeisaretle(maze,maze.finRow,maze.FinColl);
 
 	mazeYaz(maze);
 
@@ -107,49 +104,48 @@ int main()
 
 void mazeBull(int row,int coll,int deep,int yön)
 {
-	if(maze.mazevizit[row][coll] == -1)
+	if(maze.mazevizit[row][coll] == MAXColl*MAXROW)
 		return;
 	if(maze.maze[row+1][coll] == 'f' || maze.maze[row-1][coll] == 'f' || maze.maze[row][coll+1] == 'f' || maze.maze[row][coll-1] == 'f')
 	{
 		if(maze.minYol>deep)
-		{maze.minYol = deep; maze.finRow = row;maze.FinColl = coll;}
+		{maze.minYol = deep; maze.finRow = row;maze.FinColl = coll;maze.mazevizit[row][coll] = deep;}
 		return;
 	}
-	if(True == KapalýYolmu(row,coll,yön))
+	if(KapalýYolmu(row,coll,yön))
 	{
-		maze.mazevizit[row][coll] = -1;
+		maze.mazevizit[row][coll] = MAXColl*MAXROW;
 		return;
 	}
 	if(maze.maze[row][coll] == '*' || maze.mazevizit[row][coll] < deep || maze.minYol < deep)
 		return;
 
-	Sleep(5);
+	Sleep(2);
 
 	mazeHareket(maze,row,coll);
 
-	if(maze.maze[row][coll] == ' ' && maze.minYol > deep && maze.mazevizit[row][coll] > deep && maze.mazevizit[row][coll] != -1)
+	if(maze.maze[row][coll] == ' ' && maze.minYol > deep && maze.mazevizit[row][coll] > deep && maze.mazevizit[row][coll] != MAXColl*MAXROW)
 		maze.mazevizit[row][coll] = deep;
 	if(yön != 2)
-	mazeBull(row,coll-1,deep+1,1);
+		mazeBull(row,coll-1,deep+1,1);
 	if(yön != 1)
-	mazeBull(row,coll+1,deep+1,2);
+		mazeBull(row,coll+1,deep+1,2);
 	if(yön != 4)
-	mazeBull(row-1,coll,deep+1,3);
+		mazeBull(row-1,coll,deep+1,3);
 	if(yön != 3)
-	mazeBull(row+1,coll,deep+1,4);
-	
+		mazeBull(row+1,coll,deep+1,4);
 	return;
 }
 
 int KapalýYolmu(int row,int coll,int yön)
 {
-	if(yön == 1 && maze.maze[row][coll-1] == '*' && maze.maze[row+1][coll] == '*' && maze.maze[row-1][coll] == '*')
+	if(yön == 1 && maze.maze[row][coll-1] == '*' && maze.maze[row+1][coll] == '*' && maze.maze[row-1][coll] == '*')//alt 
 		return True;
-	else if(yön == 2 && maze.maze[row][coll+1] == '*' && maze.maze[row+1][coll] == '*' && maze.maze[row-1][coll] == '*')
+	else if(yön == 2 && maze.maze[row][coll+1] == '*' && maze.maze[row+1][coll] == '*' && maze.maze[row-1][coll] == '*')//üst
 		return True;
-	else if(yön == 3 && maze.maze[row-1][coll] == '*' && maze.maze[row][coll-1] == '*' && maze.maze[row][coll+1] == '*')
+	else if(yön == 3 && maze.maze[row-1][coll] == '*' && maze.maze[row][coll-1] == '*' && maze.maze[row][coll+1] == '*')//sað
 		return True;
-	else if(yön == 4 && maze.maze[row+1][coll] == '*' && maze.maze[row][coll-1] == '*' && maze.maze[row][coll+1] == '*')
+	else if(yön == 4 && maze.maze[row+1][coll] == '*' && maze.maze[row][coll-1] == '*' && maze.maze[row][coll+1] == '*')//sol
 		return True;
 	else
 		return False;
@@ -157,7 +153,21 @@ int KapalýYolmu(int row,int coll,int yön)
 
 void mazeYaz(Smaze m)
 {
-	system("CLS");
+	CONSOLE_CURSOR_INFO curInfo;
+        HANDLE hStdout;
+        hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+        COORD pos={10,10};
+
+        GetConsoleCursorInfo(hStdout,&curInfo);
+
+        curInfo.bVisible=false;
+
+        SetConsoleCursorInfo(hStdout,&curInfo);
+		pos.X=0;
+		pos.Y=0;
+        SetConsoleCursorPosition(hStdout,pos);
+		SetConsoleTextAttribute(hStdout, 2);
+	//system("CLS");
 	printf("\n");
 	for(int i = 0 ;i < m.row;i++)
     {
@@ -171,11 +181,36 @@ void mazeYaz(Smaze m)
 
 void mazeHareket(Smaze m,int row,int coll)
 {
-	system("CLS");
+	 CONSOLE_CURSOR_INFO curInfo;
+
+ 
+
+        HANDLE hStdout;
+
+        hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        int i=0;
+
+        int j=0;
+
+        COORD pos={10,10};
+
+        GetConsoleCursorInfo(hStdout,&curInfo);
+
+        curInfo.bVisible=false;
+
+        SetConsoleCursorInfo(hStdout,&curInfo);
+		pos.X=0;
+		pos.Y=0;
+        SetConsoleCursorPosition(hStdout,pos);
+		SetConsoleTextAttribute(hStdout, 2);
+	//system("CLS");
 	printf("\n");
 	for(int i = 0 ;i < m.row;i++)
-    {
+    { 
+
         for (int j = 0; j< m.coll; j++) {
+			 
 			if(i == row && j == coll)
 				printf("o");
 			else
@@ -187,9 +222,41 @@ void mazeHareket(Smaze m,int row,int coll)
 	printf("\n");
 }
 
-void mazeisaretle(int row,int coll)
+void mazeisaretle(Smaze m,int row,int coll)
 {
-	if(maze.mazevizit[row][coll] == 0)
+	if(maze.mazevizit[row][coll] == 1){
+		maze.maze[row][coll] = '-';
 		return;
-	
+	}
+	if(!KapalýYolmu(row,coll,1) && maze.mazevizit[row][coll]>maze.mazevizit[row][coll+1])
+	{
+		maze.maze[row][coll] = '-';
+		mazeisaretle(m,row,coll+1);
+		return;
+	}
+	if(!KapalýYolmu(row,coll,2))
+	{
+		if(maze.mazevizit[row][coll]>maze.mazevizit[row][coll-1]){
+			maze.maze[row][coll] = '-';
+			mazeisaretle(m,row,coll-1);
+			return;
+		}
+	}
+	if(!KapalýYolmu(row,coll,3))
+	{
+		if(maze.mazevizit[row][coll]>maze.mazevizit[row+1][coll]){
+			maze.maze[row][coll] = '-';
+			mazeisaretle(m,row+1,coll);
+			return;
+		}
+	}
+	if(!KapalýYolmu(row,coll,4))
+	{
+		if(maze.mazevizit[row][coll]>maze.mazevizit[row-1][coll]){
+			maze.maze[row][coll] = '-';
+			mazeisaretle(m,row-1,coll);
+			return;
+		}
+	}
+	return;
 }
